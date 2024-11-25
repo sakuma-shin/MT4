@@ -14,6 +14,16 @@ Matrix4x4 operator*(const Matrix4x4& m1, const Matrix4x4& m2) { return Multiply(
 Vector3 operator-(const Vector3& v) { return{ -v.x,-v.y,-v.z }; }
 Vector3 operator+(const Vector3& v) { return v; }
 
+Quaternion operator*(const Quaternion& q1, const Quaternion& q2)
+{
+	return Quaternion(q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y,
+		q1.w * q2.y - q1.x * q2.z + q1.y * q2.w + q1.z * q2.x,
+		q1.w * q2.z + q1.x * q2.y - q1.y * q2.x + q1.z * q2.w,
+		q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z);
+}
+
+
+
 //加算
 Vector3 Add(const Vector3& v1, const Vector3& v2) {
 	Vector3 result;
@@ -252,19 +262,19 @@ Matrix4x4 MakeScaleMatrix(const Vector3& scale) {
 
 
 //座標変換
-Vector3 TransForm(const Vector3& vector3, const Matrix4x4& matrix) {
+Vector3 TransForm(const Vector3& vector3, const Matrix4x4& mrix) {
 	Vector3 result;
 
-	result.x = vector3.x * matrix.m[0][0] + vector3.y * matrix.m[1][0] +
-		vector3.z * matrix.m[2][0] + matrix.m[3][0]; // x成分の変換
+	result.x = vector3.x * mrix.m[0][0] + vector3.y * mrix.m[1][0] +
+		vector3.z * mrix.m[2][0] + mrix.m[3][0]; // x成分の変換
 
-	result.y = vector3.x * matrix.m[0][1] + vector3.y * matrix.m[1][1] +
-		vector3.z * matrix.m[2][1] + matrix.m[3][1]; // y成分の変換
+	result.y = vector3.x * mrix.m[0][1] + vector3.y * mrix.m[1][1] +
+		vector3.z * mrix.m[2][1] + mrix.m[3][1]; // y成分の変換
 
-	result.z = vector3.x * matrix.m[0][2] + vector3.y * matrix.m[1][2] +
-		vector3.z * matrix.m[2][2] + matrix.m[3][2]; // z成分の変換
+	result.z = vector3.x * mrix.m[0][2] + vector3.y * mrix.m[1][2] +
+		vector3.z * mrix.m[2][2] + mrix.m[3][2]; // z成分の変換
 
-	float length = vector3.x * matrix.m[0][3] + vector3.y * matrix.m[1][3] + vector3.z * matrix.m[2][3] + matrix.m[3][3];
+	float length = vector3.x * mrix.m[0][3] + vector3.y * mrix.m[1][3] + vector3.z * mrix.m[2][3] + mrix.m[3][3];
 	if (length != 0.0f) {
 		result.x /= length;
 		result.y /= length;
@@ -564,7 +574,7 @@ Vector3 Perpendicular(const Vector3& normal) {
 	}
 }
 
-KamataEngine::Matrix4x4 MakeRotateAxisAngle(const KamataEngine::Vector3& axis, float angle)
+Matrix4x4 MakeRotateAxisAngle(const Vector3& axis, float angle)
 {
 	float cos = std::cos(angle);
 	float sin = std::sin(angle);
@@ -710,6 +720,67 @@ void DrawBezier(const Vector3& controlPoint0, const Vector3& controlPoint1, cons
 			static_cast<int>(transformedP2.x), static_cast<int>(transformedP2.y), color);
 	}
 }
+
+//任意回転Quaternionの生成
+Quaternion makeRotateAxisAngleQuaternion(const Vector3& axis, float angle) {
+
+	Quaternion q;
+	float halfAngle = angle / 2.0f;
+	float sinHalfAngle = sin(halfAngle);
+
+	q.w = cos(halfAngle);
+	q.x = axis.x * sinHalfAngle;
+	q.y = axis.y * sinHalfAngle;
+	q.z = axis.z * sinHalfAngle;
+
+	return q;
+
+}
+
+Quaternion Conjugate(const Quaternion& q) {
+	return { -q.x, -q.y, -q.z, q.w };
+}
+
+//クォータニオンでベクトルを回転させる関数
+Vector3 RotateVector(const Vector3& vector, const Quaternion& quaternion) {
+
+	Quaternion vectorQuat = { vector.x, vector.y, vector.z, 0.0f };
+
+	Quaternion qv = quaternion * vectorQuat * Conjugate(quaternion);
+
+	return { qv.x, qv.y, qv.z };
+}
+
+
+//Quaternionから回転行列を求める
+Matrix4x4 MakeRotateMatrix(const Quaternion& quaternion) {
+
+	Matrix4x4 m;
+
+	m.m[0][0] = 1 - 2 * (quaternion.y * quaternion.y + quaternion.z * quaternion.z);
+	m.m[0][1] = 2 * (quaternion.x * quaternion.y + quaternion.w * quaternion.z);
+	m.m[0][2] = 2 * (quaternion.x * quaternion.z - quaternion.w * quaternion.y);
+	m.m[0][3] = 0;
+
+	m.m[1][0] = 2 * (quaternion.x * quaternion.y - quaternion.w * quaternion.z);
+	m.m[1][1] = 1 - 2 * (quaternion.x * quaternion.x + quaternion.z * quaternion.z);
+	m.m[1][2] = 2 * (quaternion.y * quaternion.z + quaternion.w * quaternion.x);
+	m.m[1][3] = 0;
+
+	m.m[2][0] = 2 * (quaternion.x * quaternion.z + quaternion.w * quaternion.y);
+	m.m[2][1] = 2 * (quaternion.y * quaternion.z - quaternion.w * quaternion.x);
+	m.m[2][2] = 1 - 2 * (quaternion.x * quaternion.x + quaternion.y * quaternion.y);
+	m.m[2][3] = 0;
+
+	m.m[3][0] = 0;
+	m.m[3][1] = 0;
+	m.m[3][2] = 0;
+	m.m[3][3] = 1;
+
+	return m;
+
+}
+
 
 
 

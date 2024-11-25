@@ -6,6 +6,9 @@
 #include"math/Matrix4x4.h"
 #include<algorithm>
 
+using namespace KamataEngine;
+
+
 struct Sphere {
 	KamataEngine::Vector3 center;
 	float radius;
@@ -39,6 +42,10 @@ struct AABB {
 	KamataEngine::Vector3 min;//最小点
 	KamataEngine::Vector3 max;//最小点
 
+};
+
+struct Quaternion {
+	float x, y, z, w;
 };
 
 //加算
@@ -153,3 +160,14 @@ KamataEngine::Matrix4x4 operator*(const KamataEngine::Matrix4x4& m1, const Kamat
 
 KamataEngine::Vector3 operator-(const KamataEngine::Vector3& v);
 KamataEngine::Vector3 operator+(const KamataEngine::Vector3& v);
+
+Quaternion operator*(const Quaternion& q1, const Quaternion& q2);
+
+Quaternion makeRotateAxisAngleQuaternion(const Vector3& axis, float angle);
+
+Matrix4x4 MakeRotateMatrix(const Quaternion& quaternion);
+
+Quaternion Conjugate(const Quaternion& q);
+
+//クォータニオンでベクトルを回転させる関数
+Vector3 RotateVector(const Vector3& vector, const Quaternion& quaternion);
