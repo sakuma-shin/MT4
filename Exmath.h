@@ -171,3 +171,19 @@ Quaternion Conjugate(const Quaternion& q);
 
 //クォータニオンでベクトルを回転させる関数
 Vector3 RotateVector(const Vector3& vector, const Quaternion& quaternion);
+
+Quaternion IdentityQuaternion();
+
+Quaternion Multiply(const Quaternion& lhs, const Quaternion& rhs);
+
+// 共役クオータニオン
+Quaternion Conjugate(const Quaternion& quaternion);
+
+// クオータニオンのノルム
+float Norm(const Quaternion& quaternion);
+
+// クオータニオンの正規化
+Quaternion Normalize(const Quaternion& quaternion);
+
+// クオータニオンの逆
+Quaternion Inverse(const Quaternion& quaternion);

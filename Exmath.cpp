@@ -781,7 +781,64 @@ Matrix4x4 MakeRotateMatrix(const Quaternion& quaternion) {
 
 }
 
+// 単位クオータニオン
+Quaternion IdentityQuaternion() {
+	return { 0.0f, 0.0f, 0.0f, 1.0f }; // w=1, 他は0
+}
 
+// クオータニオンの乗算
+Quaternion Multiply(const Quaternion& lhs, const Quaternion& rhs) {
+	return {
+		lhs.w * rhs.x + lhs.x * rhs.w + lhs.y * rhs.z - lhs.z * rhs.y, // x
+		lhs.w * rhs.y - lhs.x * rhs.z + lhs.y * rhs.w + lhs.z * rhs.x, // y
+		lhs.w * rhs.z + lhs.x * rhs.y - lhs.y * rhs.x + lhs.z * rhs.w, // z
+		lhs.w * rhs.w - lhs.x * rhs.x - lhs.y * rhs.y - lhs.z * rhs.z  // w
+	};
+}
+
+
+
+// クオータニオンのノルム
+float Norm(const Quaternion& quaternion) {
+	return std::sqrt(
+		quaternion.x * quaternion.x +
+		quaternion.y * quaternion.y +
+		quaternion.z * quaternion.z +
+		quaternion.w * quaternion.w
+	);
+}
+
+// クオータニオンの正規化
+Quaternion Normalize(const Quaternion& quaternion) {
+	float norm = Norm(quaternion);
+	if (norm > 0.0f) {
+		float invNorm = 1.0f / norm;
+		return {
+			quaternion.x * invNorm,
+			quaternion.y * invNorm,
+			quaternion.z * invNorm,
+			quaternion.w * invNorm
+		};
+	}
+	return quaternion; // ゼロノルムの場合はそのまま返す
+}
+
+// クオータニオンの逆
+Quaternion Inverse(const Quaternion& quaternion) {
+	float normSquared = Norm(quaternion);
+	normSquared *= normSquared;
+	if (normSquared > 0.0f) {
+		Quaternion conjugate = Conjugate(quaternion);
+		float invNormSquared = 1.0f / normSquared;
+		return {
+			conjugate.x * invNormSquared,
+			conjugate.y * invNormSquared,
+			conjugate.z * invNormSquared,
+			conjugate.w * invNormSquared
+		};
+	}
+	return quaternion; // ゼロノルムの場合はそのまま返す
+}
 
 
 
