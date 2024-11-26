@@ -711,6 +711,101 @@ void DrawBezier(const Vector3& controlPoint0, const Vector3& controlPoint1, cons
 	}
 }
 
+Matrix4x4 DirectionToDirection(const Vector3& from, const Vector3& to) {
+	// from=u, to=v
+
+	// from, to のクロス積を取る
+	Vector3 cross = Cross(from, to);
+
+	// from, to の内積を取る
+	float cos = Dot(from, to);
+
+	// from, to の長さを取る
+	float sin = Length(cross);
+
+	float epsilon = 1e-6f;
+	Vector3 axis = {};
+
+	if (std::abs(cos + 1.0f) <= epsilon) {
+		// 180度回転のケース
+		if (std::abs(from.x) > epsilon || std::abs(from.y) > epsilon) {
+			// (ux≠0||uy≠0)の際のaxisの値を入れる
+			axis.x = -from.y;
+			axis.y = from.x;
+			axis.z = 0.0f;
+		} else {
+			// (ux≠0||uz≠0)の際のaxisの値を入れる
+			axis.x = -from.z;
+			axis.y = 0.0f;
+			axis.z = from.x;
+		}
+
+		axis = Normalize(axis);
+	} else {
+		axis = Normalize(cross);
+	}
+
+	// 回転行列を構築
+	Matrix4x4 rotateMatrix = {};
+	if (std::abs(cos + 1.0f) <= epsilon) {
+		// 180度回転の場合、特別な処理が必要
+		float xx = axis.x * axis.x;
+		float yy = axis.y * axis.y;
+		float zz = axis.z * axis.z;
+		float xy = axis.x * axis.y;
+		float xz = axis.x * axis.z;
+		float yz = axis.y * axis.z;
+
+		rotateMatrix.m[0][0] = 2.0f * xx - 1.0f;
+		rotateMatrix.m[0][1] = 2.0f * xy;
+		rotateMatrix.m[0][2] = 2.0f * xz;
+		rotateMatrix.m[0][3] = 0.0f;
+
+		rotateMatrix.m[1][0] = 2.0f * xy;
+		rotateMatrix.m[1][1] = 2.0f * yy - 1.0f;
+		rotateMatrix.m[1][2] = 2.0f * yz;
+		rotateMatrix.m[1][3] = 0.0f;
+
+		rotateMatrix.m[2][0] = 2.0f * xz;
+		rotateMatrix.m[2][1] = 2.0f * yz;
+		rotateMatrix.m[2][2] = 2.0f * zz - 1.0f;
+		rotateMatrix.m[2][3] = 0.0f;
+
+		rotateMatrix.m[3][0] = 0.0f;
+		rotateMatrix.m[3][1] = 0.0f;
+		rotateMatrix.m[3][2] = 0.0f;
+		rotateMatrix.m[3][3] = 1.0f;
+	} else {
+		// 通常の回転
+		float x = axis.x;
+		float y = axis.y;
+		float z = axis.z;
+
+		float oneCos = 1.0f - cos;
+
+		rotateMatrix.m[0][0] = cos + x * x * oneCos;
+		rotateMatrix.m[0][1] = x * y * oneCos - z * sin;
+		rotateMatrix.m[0][2] = x * z * oneCos + y * sin;
+		rotateMatrix.m[0][3] = 0.0f;
+
+		rotateMatrix.m[1][0] = y * x * oneCos + z * sin;
+		rotateMatrix.m[1][1] = cos + y * y * oneCos;
+		rotateMatrix.m[1][2] = y * z * oneCos - x * sin;
+		rotateMatrix.m[1][3] = 0.0f;
+
+		rotateMatrix.m[2][0] = z * x * oneCos - y * sin;
+		rotateMatrix.m[2][1] = z * y * oneCos + x * sin;
+		rotateMatrix.m[2][2] = cos + z * z * oneCos;
+		rotateMatrix.m[2][3] = 0.0f;
+
+		rotateMatrix.m[3][0] = 0.0f;
+		rotateMatrix.m[3][1] = 0.0f;
+		rotateMatrix.m[3][2] = 0.0f;
+		rotateMatrix.m[3][3] = 1.0f;
+	}
+
+	return rotateMatrix;
+}
 
 
 

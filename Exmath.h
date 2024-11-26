@@ -6,6 +6,9 @@
 #include"math/Matrix4x4.h"
 #include<algorithm>
 
+using namespace KamataEngine;
+
+
 struct Sphere {
 	KamataEngine::Vector3 center;
 	float radius;
@@ -153,3 +156,5 @@ KamataEngine::Matrix4x4 operator*(const KamataEngine::Matrix4x4& m1, const Kamat
 
 KamataEngine::Vector3 operator-(const KamataEngine::Vector3& v);
 KamataEngine::Vector3 operator+(const KamataEngine::Vector3& v);
+
+KamataEngine::Matrix4x4 DirectionToDirection(const KamataEngine::Vector3& from, const KamataEngine::Vector3& to);

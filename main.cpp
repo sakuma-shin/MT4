@@ -1,13 +1,14 @@
 #include <Novice.h>
 #include"Exmath.h"
 
-const char kWindowTitle[] = "LE2C_サクマ_シン_MT3";
+const char kWindowTitle[] = "LE2C_サクマ_シン_MT4";
 
 const int kColmunWidth = 60;
 const int kColmunHeight = 50;
 const int kWindowWidth = 1280;
 const int kWindowHeight = 720;
 
+using namespace KamataEngine;
 
 void VectorScreenPrintf(int x, int y, const KamataEngine::Vector3& v, const char* label) {
 	Novice::ScreenPrintf(x, y, "%.02f", v.x);
@@ -37,9 +38,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	char keys[256] = {0};
 	char preKeys[256] = {0};
 
-	KamataEngine::Vector3 axis = Normalize({ 1.0f,1.0f,1.0f });
-	float angle = 0.44f;
-	KamataEngine::Matrix4x4 rotateMatrix = MakeRotateAxisAngle(axis, angle);
+	Vector3 v1{ 1.0f, 3.0f, -5.0f };
+	Vector3 v2{ 4.0f, -1.0f, 2.0f };
 	
 
 	// ウィンドウの×ボタンが押されるまでループ
@@ -55,6 +55,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓更新処理ここから
 		///
+		Vector3 from0 = Normalize(Vector3{ 1.0f, 0.7f, 0.5f });
+		Vector3 to0 = { -from0.x,-from0.y, -from0.z };
+		Vector3 from1 = Normalize(Vector3{ -0.6f, 0.9f, 0.2f });
+		Vector3 to1 = Normalize(Vector3{ 0.4f, 0.7f, -0.5f });
+		Matrix4x4 rotateMatrix0 = DirectionToDirection(Normalize(Vector3{ 1.0f, 0.0f, 0.0f }), Normalize(Vector3{ -1.0f, 0.0f, 0.0f }));
+		Matrix4x4 rotateMatrix1 = DirectionToDirection(from0, to0);
+		Matrix4x4 rotateMatrix2 = DirectionToDirection(from1, to1);
 
 		///
 		/// ↑更新処理ここまで
@@ -63,7 +70,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓描画処理ここから
 		///
-		MatrixScreenPrintf(0, 0, rotateMatrix, "rotateMatrix");
+		MatrixScreenPrintf(0, 0, rotateMatrix0, "rotateMatrix0");
+		MatrixScreenPrintf(0, kColmunHeight * 5, rotateMatrix1, "rotateMatrix1");
+		MatrixScreenPrintf(0, kColmunHeight * 10, rotateMatrix2, "rotateMatrix2");
 		///
 		/// ↑描画処理ここまで
 		///
