@@ -14,6 +14,11 @@ Matrix4x4 operator*(const Matrix4x4& m1, const Matrix4x4& m2) { return Multiply(
 Vector3 operator-(const Vector3& v) { return{ -v.x,-v.y,-v.z }; }
 Vector3 operator+(const Vector3& v) { return v; }
 
+Quaternion operator-(const Quaternion& q0)
+{
+	return Quaternion(-q0.x,-q0.y,-q0.z,-q0.w);
+}
+
 Quaternion operator*(const Quaternion& q1, const Quaternion& q2)
 {
 	return Quaternion(q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y,
@@ -751,10 +756,30 @@ Vector3 RotateVector(const Vector3& vector, const Quaternion& quaternion) {
 	return { qv.x, qv.y, qv.z };
 }
 
-Quaternion Slerp(const Quaternion& q0, const Quaternion& q1, float t)
+Quaternion Slerp(Quaternion& q0, const Quaternion& q1, float t)
 {
-	float dot = Dot(q0, q1);
-	return Quaternion();
+	float dot = q0.x * q1.x + q0.y * q1.y + q0.z * q1.z + q0.w * q1.w;
+	if (dot < 0) {
+		q0 = -q0;
+		dot = -dot;
+	}
+
+	//なす角を求める
+	float theta = std::acos(dot);
+
+	//補間係数を求める
+	float sinTheta = std::sin(theta);
+	float scale0 = std::sin((1.0f - t) * theta) / sinTheta;
+	float scale1 = std::sin(t * theta) / sinTheta;
+
+	//それぞれの補間係数を利用して補間後のQuaternionを求める
+	Quaternion result;
+	result.w = scale0 * q0.w + scale1 * q1.w;
+	result.x = scale0 * q0.x + scale1 * q1.x;
+	result.y = scale0 * q0.y + scale1 * q1.y;
+	result.z = scale0 * q0.z + scale1 * q1.z;
+
+	return result;
 }
 
 
@@ -792,3 +817,61 @@ Matrix4x4 MakeRotateMatrix(const Quaternion& quaternion) {
 
 
 
+// 単位クオータニオン
+Quaternion IdentityQuaternion() {
+	return { 0.0f, 0.0f, 0.0f, 1.0f }; // w=1, 他は0
+}
+
+// クオータニオンの乗算
+Quaternion Multiply(const Quaternion& lhs, const Quaternion& rhs) {
+	return {
+		lhs.w * rhs.x + lhs.x * rhs.w + lhs.y * rhs.z - lhs.z * rhs.y, // x
+		lhs.w * rhs.y - lhs.x * rhs.z + lhs.y * rhs.w + lhs.z * rhs.x, // y
+		lhs.w * rhs.z + lhs.x * rhs.y - lhs.y * rhs.x + lhs.z * rhs.w, // z
+		lhs.w * rhs.w - lhs.x * rhs.x - lhs.y * rhs.y - lhs.z * rhs.z  // w
+	};
+}
+
+
+
+// クオータニオンのノルム
+float Norm(const Quaternion& quaternion) {
+	return std::sqrt(
+		quaternion.x * quaternion.x +
+		quaternion.y * quaternion.y +
+		quaternion.z * quaternion.z +
+		quaternion.w * quaternion.w
+	);
+}
+
+// クオータニオンの正規化
+Quaternion Normalize(const Quaternion& quaternion) {
+	float norm = Norm(quaternion);
+	if (norm > 0.0f) {
+		float invNorm = 1.0f / norm;
+		return {
+			quaternion.x * invNorm,
+			quaternion.y * invNorm,
+			quaternion.z * invNorm,
+			quaternion.w * invNorm
+		};
+	}
+	return quaternion; // ゼロノルムの場合はそのまま返す
+}
+
+// クオータニオンの逆
+Quaternion Inverse(const Quaternion& quaternion) {
+	float normSquared = Norm(quaternion);
+	normSquared *= normSquared;
+	if (normSquared > 0.0f) {
+		Quaternion conjugate = Conjugate(quaternion);
+		float invNormSquared = 1.0f / normSquared;
+		return {
+			conjugate.x * invNormSquared,
+			conjugate.y * invNormSquared,
+			conjugate.z * invNormSquared,
+			conjugate.w * invNormSquared
+		};
+	}
+	return quaternion; // ゼロノルムの場合はそのまま返す
+}

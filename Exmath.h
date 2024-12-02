@@ -161,6 +161,8 @@ KamataEngine::Matrix4x4 operator*(const KamataEngine::Matrix4x4& m1, const Kamat
 KamataEngine::Vector3 operator-(const KamataEngine::Vector3& v);
 KamataEngine::Vector3 operator+(const KamataEngine::Vector3& v);
 
+Quaternion operator-(const Quaternion& q0);
+
 Quaternion operator*(const Quaternion& q1, const Quaternion& q2);
 
 Quaternion makeRotateAxisAngleQuaternion(const Vector3& axis, float angle);
@@ -172,4 +174,4 @@ Quaternion Conjugate(const Quaternion& q);
 //クォータニオンでベクトルを回転させる関数
 Vector3 RotateVector(const Vector3& vector, const Quaternion& quaternion);
 
-Quaternion Slerp(const Quaternion& q0, const Quaternion& q1, float t);
+Quaternion Slerp(Quaternion& q0, const Quaternion& q1, float t);
