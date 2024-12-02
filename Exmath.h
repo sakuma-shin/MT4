@@ -171,3 +171,5 @@ Quaternion Conjugate(const Quaternion& q);
 
 //クォータニオンでベクトルを回転させる関数
 Vector3 RotateVector(const Vector3& vector, const Quaternion& quaternion);
+
+Quaternion Slerp(const Quaternion& q0, const Quaternion& q1, float t);
